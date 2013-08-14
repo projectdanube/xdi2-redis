@@ -41,9 +41,9 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 		Jedis jedis = this.getPort() == null ? new Jedis(this.getHost()) : new Jedis(this.getHost(), this.getPort().intValue());
 
 		// create prefix
-		
-		String prefix = new String(Base64.encodeBase64(identifier.getBytes("UTF-8")), "UTF-8") + ".";
-		
+
+		String prefix = identifier == null ? "" : new String(Base64.encodeBase64(identifier.getBytes("UTF-8")), "UTF-8") + ".";
+
 		// open store
 
 		KeyValueStore keyValueStore;
