@@ -2,10 +2,12 @@ package xdi2.core.impl.redis;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import redis.clients.jedis.Jedis;
 import xdi2.core.impl.keyvalue.AbstractKeyValueStore;
 import xdi2.core.impl.keyvalue.KeyValueStore;
 
@@ -19,12 +21,13 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 
 	private static final Logger log = LoggerFactory.getLogger(RedisKeyValueStore.class);
 
-	private String path;
+	private Jedis jedis;
+	private String prefix;
 
-	public RedisKeyValueStore(String path) {
+	public RedisKeyValueStore(Jedis jedis, String prefix) {
 
-		this.path = path;
-
+		this.jedis = jedis;
+		this.prefix = prefix;
 	}
 
 	@Override
@@ -38,31 +41,69 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 	}
 
 	@Override
-	public void put(String key, String value) {
-		// TODO Auto-generated method stub
+	public void set(String key, String value) {
 
+		this.getJedis().sadd(this.getPrefix() + key, value);
+	}
+
+	@Override
+	public String getOne(String key) {
+
+		return this.getJedis().srandmember(this.getPrefix() + key);
 	}
 
 	@Override
 	public Iterator<String> getAll(String key) {
-		// TODO Auto-generated method stub
-		return null;
+
+		return this.getJedis().smembers(this.getPrefix() + key).iterator();
+	}
+
+	@Override
+	public boolean contains(String key) {
+
+		return Boolean.TRUE.equals(this.getJedis().exists(this.getPrefix() + key));
+	}
+
+	@Override
+	public boolean contains(String key, String value) {
+
+		return Boolean.TRUE.equals(this.getJedis().sismember(this.getPrefix() + key, value));
+	}
+
+	@Override
+	public void delete(String key) {
+
+		this.getJedis().del(this.getPrefix() + key);
 	}
 
 	@Override
 	public void delete(String key, String value) {
-		// TODO Auto-generated method stub
 
+		this.getJedis().srem(this.getPrefix() + key, value);
+	}
+
+	@Override
+	public long count(String key) {
+
+		return this.getJedis().scard(this.getPrefix() + key).longValue();
 	}
 
 	@Override
 	public void clear() {
-		// TODO Auto-generated method stub
 
+		Set<String> keys = this.getJedis().keys(this.getPrefix() + "*");
+		if (keys.isEmpty()) return;
+
+		this.getJedis().del(keys.toArray(new String[keys.size()]));
 	}
 
-	public String getPath() {
+	public Jedis getJedis() {
 
-		return this.path;
+		return this.jedis;
+	}
+
+	public String getPrefix() {
+
+		return this.prefix;
 	}
 }

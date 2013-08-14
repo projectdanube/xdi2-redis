@@ -2,6 +2,7 @@ package xdi2.tests.core.impl;
 
 import java.io.IOException;
 
+import redis.clients.jedis.Jedis;
 import xdi2.core.Graph;
 import xdi2.core.impl.redis.RedisGraphFactory;
 import xdi2.tests.core.graph.AbstractGraphTest;
@@ -10,7 +11,7 @@ public class RedisGraphTest extends AbstractGraphTest {
 
 	private static RedisGraphFactory graphFactory = new RedisGraphFactory();
 
-	public static final String PATH = "dummy";
+	public static final String HOST = "localhost";
 
 	static {
 
@@ -19,11 +20,11 @@ public class RedisGraphTest extends AbstractGraphTest {
 
 	public static void cleanup() {
 
-		graphFactory.setPath(PATH);
+		graphFactory.setHost(HOST);
 
 		try {
 
-			// delete everything in redis
+			new Jedis(HOST).flushDB();
 		} catch (Exception ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);

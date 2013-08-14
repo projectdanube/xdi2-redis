@@ -2,6 +2,9 @@ package xdi2.core.impl.redis;
 
 import java.io.IOException;
 
+import org.apache.commons.codec.binary.Base64;
+
+import redis.clients.jedis.Jedis;
 import xdi2.core.GraphFactory;
 import xdi2.core.impl.keyvalue.AbstractKeyValueGraphFactory;
 import xdi2.core.impl.keyvalue.KeyValueStore;
@@ -16,32 +19,36 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 	public static final boolean DEFAULT_SUPPORT_GET_CONTEXTNODES = true; 
 	public static final boolean DEFAULT_SUPPORT_GET_RELATIONS = true; 
 
-	public static final String DEFAULT_PROPERTIES_PATH = "xdi2-graph.properties";
+	public static final String DEFAULT_HOST = "localhost";
+	public static final Integer DEFAULT_PORT = null;
 
-	private String path;
+	private String host;
+	private Integer port;
 
 	public RedisGraphFactory() {
 
 		super(DEFAULT_SUPPORT_GET_CONTEXTNODES, DEFAULT_SUPPORT_GET_RELATIONS);
 
-		this.path = DEFAULT_PROPERTIES_PATH;
+		this.host = DEFAULT_HOST;
+		this.port = DEFAULT_PORT;
 	}
 
 	@Override
 	protected KeyValueStore openKeyValueStore(String identifier) throws IOException {
 
-		// check identifier
+		// create jedis
 
-		if (identifier != null) {
+		Jedis jedis = this.getPort() == null ? new Jedis(this.getHost()) : new Jedis(this.getHost(), this.getPort().intValue());
 
-			this.setPath("xdi2-graph." + identifier + ".properties");
-		}
-
+		// create prefix
+		
+		String prefix = new String(Base64.encodeBase64(identifier.getBytes("UTF-8")), "UTF-8") + ".";
+		
 		// open store
 
 		KeyValueStore keyValueStore;
 
-		keyValueStore = new RedisKeyValueStore(this.path);
+		keyValueStore = new RedisKeyValueStore(jedis, prefix);
 		keyValueStore.init();
 
 		// done
@@ -49,13 +56,23 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 		return keyValueStore;
 	}
 
-	public String getPath() {
+	public String getHost() {
 
-		return this.path;
+		return this.host;
 	}
 
-	public void setPath(String path) {
+	public void setHost(String host) {
 
-		this.path = path;
+		this.host = host;
+	}
+
+	public Integer getPort() {
+
+		return this.port;
+	}
+
+	public void setPort(Integer port) {
+
+		this.port = port;
 	}
 }
