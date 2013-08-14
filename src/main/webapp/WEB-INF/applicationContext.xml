@@ -39,7 +39,7 @@
 	<!-- MessagingTarget: GraphMessagingTarget backed by a RedisGraph -->
 
 	<bean id="graphfactory1" class="xdi2.core.impl.redis.RedisGraphFactory">
-		<property name="path" value="dummy" />
+		<property name="host" value="localhost" />
 	</bean>
 
 	<bean id="graph1" factory-bean="graphfactory1" factory-method="openGraph" />
