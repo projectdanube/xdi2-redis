@@ -23,7 +23,9 @@ import xdi2.client.XDIClient;
 import xdi2.client.exceptions.Xdi2ClientException;
 import xdi2.client.http.XDIHttpClient;
 import xdi2.core.Graph;
+import xdi2.core.impl.keyvalue.KeyValueGraph;
 import xdi2.core.impl.memory.MemoryGraphFactory;
+import xdi2.core.impl.redis.RedisKeyValueStore;
 import xdi2.core.io.XDIReader;
 import xdi2.core.io.XDIReaderRegistry;
 import xdi2.core.io.XDIWriter;
@@ -120,6 +122,7 @@ public class XDIRedis extends HttpServlet implements HttpRequestHandler {
 		String endpoint = request.getParameter("endpoint");
 		String output = "";
 		String stats = "-1";
+		String redisApiLog = "";
 		String error = null;
 
 		Properties xdiResultWriterParameters = new Properties();
@@ -138,6 +141,10 @@ public class XDIRedis extends HttpServlet implements HttpRequestHandler {
 		long start = System.currentTimeMillis();
 
 		try {
+
+			// reset Redis logs
+
+			((RedisKeyValueStore) ((KeyValueGraph) this.getGraph()).getKeyValueStore()).getJedisMonitorThread().reset();
 
 			// parse the message envelope
 
@@ -183,6 +190,9 @@ public class XDIRedis extends HttpServlet implements HttpRequestHandler {
 
 		stats = "";
 		stats += Long.toString(stop - start) + " ms time. ";
+		stats += Integer.toString(((RedisKeyValueStore) ((KeyValueGraph) this.getGraph()).getKeyValueStore()).getJedisMonitorThread().getCount());
+
+		redisApiLog = "<pre>" + ((RedisKeyValueStore) ((KeyValueGraph) this.getGraph()).getKeyValueStore()).getJedisMonitorThread().getBuffer().toString() + "</pre>";
 
 		// display results
 
@@ -196,6 +206,7 @@ public class XDIRedis extends HttpServlet implements HttpRequestHandler {
 		request.setAttribute("endpoint", endpoint);
 		request.setAttribute("output", output);
 		request.setAttribute("stats", stats);
+		request.setAttribute("redisApiLog", redisApiLog);
 		request.setAttribute("error", error);
 
 		request.getRequestDispatcher("/XDIRedis.jsp").forward(request, response);

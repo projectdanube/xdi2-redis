@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisMonitor;
 import xdi2.core.impl.keyvalue.AbstractKeyValueStore;
 import xdi2.core.impl.keyvalue.KeyValueStore;
 
@@ -24,10 +25,21 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 	private Jedis jedis;
 	private String prefix;
 
-	public RedisKeyValueStore(Jedis jedis, String prefix) {
+	private MyJedisMonitorThread jedisMonitorThread;
+
+	public RedisKeyValueStore(Jedis jedis, Jedis monitorJedis, String prefix) {
 
 		this.jedis = jedis;
 		this.prefix = prefix;
+
+		if (monitorJedis != null) {
+
+			this.jedisMonitorThread = new MyJedisMonitorThread(monitorJedis);
+			this.jedisMonitorThread.start();
+		} else {
+
+			this.jedisMonitorThread = null;
+		}
 	}
 
 	@Override
@@ -38,6 +50,20 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 	@Override
 	public void close() {
 
+		this.getJedis().disconnect();
+
+		if (this.getJedisMonitorThread() != null) {
+
+			this.getJedisMonitorThread().getMonitorJedis().disconnect();
+
+			try {
+
+				this.getJedisMonitorThread().join();
+			} catch (InterruptedException ex) { 
+
+				ex.printStackTrace(System.err);
+			}
+		}
 	}
 
 	@Override
@@ -105,5 +131,72 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 	public String getPrefix() {
 
 		return this.prefix;
+	}
+
+	public MyJedisMonitorThread getJedisMonitorThread() {
+
+		return this.jedisMonitorThread;
+	}
+
+	/*
+	 * Helper classes
+	 */
+
+	public static class MyJedisMonitorThread extends Thread {
+
+		private StringBuffer buffer;
+		private int count;
+		private Jedis monitorJedis;
+
+		public MyJedisMonitorThread(Jedis monitorJedis) {
+
+			this.buffer = new StringBuffer();
+			this.count = 0;
+			this.monitorJedis = monitorJedis;
+		}
+
+		@Override
+		public void run() {
+
+			if (log.isDebugEnabled()) log.debug("Starting monitor.");
+
+			try {
+
+				this.getMonitorJedis().monitor(new JedisMonitor() {
+
+					@Override
+					public void onCommand(String command) {
+
+						if (log.isDebugEnabled()) log.debug(command);
+
+						MyJedisMonitorThread.this.buffer.append(command + "\n");
+					}
+				});
+			} catch (Exception ex) {
+
+				if (log.isDebugEnabled()) log.debug("Stopping monitor.");
+			}
+		}
+
+		public StringBuffer getBuffer() {
+
+			return this.buffer;
+		}
+
+		public int getCount() {
+
+			return this.count;
+		}
+
+		public Jedis getMonitorJedis() {
+
+			return this.monitorJedis;
+		}
+
+		public void reset() {
+
+			this.buffer = new StringBuffer();
+			this.count = 0;
+		}
 	}
 }

@@ -71,6 +71,10 @@
 		</p>
 	<% } %>
 
+	<% if (request.getAttribute("redisApiLog") != null) { %>
+		<div class="result"><pre><%= request.getAttribute("redisApiLog") %></pre></div><br>
+	<% } %>
+
 	<% if (request.getAttribute("output") != null) { %>
 		<div class="result"><pre><%= request.getAttribute("output") %></pre></div><br>
 	<% } %>

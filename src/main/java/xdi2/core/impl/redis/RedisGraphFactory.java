@@ -21,9 +21,11 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 
 	public static final String DEFAULT_HOST = "localhost";
 	public static final Integer DEFAULT_PORT = null;
+	public static final boolean DEFAULT_MONITOR = false;
 
 	private String host;
 	private Integer port;
+	private boolean monitor;
 
 	public RedisGraphFactory() {
 
@@ -31,6 +33,7 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 
 		this.host = DEFAULT_HOST;
 		this.port = DEFAULT_PORT;
+		this.monitor = DEFAULT_MONITOR;
 	}
 
 	@Override
@@ -39,6 +42,15 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 		// create jedis
 
 		Jedis jedis = this.getPort() == null ? new Jedis(this.getHost()) : new Jedis(this.getHost(), this.getPort().intValue());
+		Jedis monitorJedis;
+
+		if (this.isMonitor()) {
+
+			monitorJedis = this.getPort() == null ? new Jedis(this.getHost()) : new Jedis(this.getHost(), this.getPort().intValue());
+		} else {
+
+			monitorJedis = null;
+		}
 
 		// create prefix
 
@@ -48,7 +60,7 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 
 		KeyValueStore keyValueStore;
 
-		keyValueStore = new RedisKeyValueStore(jedis, prefix);
+		keyValueStore = new RedisKeyValueStore(jedis, monitorJedis, prefix);
 		keyValueStore.init();
 
 		// done
@@ -74,5 +86,15 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 	public void setPort(Integer port) {
 
 		this.port = port;
+	}
+
+	public boolean isMonitor() {
+
+		return this.monitor;
+	}
+
+	public void setMonitor(boolean monitor) {
+
+		this.monitor = monitor;
 	}
 }

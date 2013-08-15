@@ -25,8 +25,8 @@ public class RedisKeyValueTest extends AbstractKeyValueTest {
 		String prefix = new String(Base64.encodeBase64(id.getBytes("UTF-8")), "UTF-8") + ".";
 
 		// create the key/value store
-
-		KeyValueStore keyValueStore = new RedisKeyValueStore(jedis, prefix);
+		
+		KeyValueStore keyValueStore = new RedisKeyValueStore(jedis, null, prefix);
 
 		// done
 
