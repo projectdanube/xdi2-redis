@@ -144,14 +144,12 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 
 	public static class MyJedisMonitorThread extends Thread {
 
-		private StringBuffer buffer;
-		private int count;
+		private StringBuffer logBuffer;
 		private Jedis monitorJedis;
 
 		public MyJedisMonitorThread(Jedis monitorJedis) {
 
-			this.buffer = new StringBuffer();
-			this.count = 0;
+			this.logBuffer = new StringBuffer();
 			this.monitorJedis = monitorJedis;
 		}
 
@@ -169,7 +167,7 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 
 						if (log.isDebugEnabled()) log.debug(command);
 
-						MyJedisMonitorThread.this.buffer.append(command + "\n");
+						MyJedisMonitorThread.this.logBuffer.append(command + "\n");
 					}
 				});
 			} catch (Exception ex) {
@@ -178,14 +176,9 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 			}
 		}
 
-		public StringBuffer getBuffer() {
+		public StringBuffer getLogBuffer() {
 
-			return this.buffer;
-		}
-
-		public int getCount() {
-
-			return this.count;
+			return this.logBuffer;
 		}
 
 		public Jedis getMonitorJedis() {
@@ -193,10 +186,9 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 			return this.monitorJedis;
 		}
 
-		public void reset() {
+		public void resetLogBuffer() {
 
-			this.buffer = new StringBuffer();
-			this.count = 0;
+			this.logBuffer = new StringBuffer();
 		}
 	}
 }

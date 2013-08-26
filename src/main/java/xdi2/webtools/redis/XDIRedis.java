@@ -144,7 +144,7 @@ public class XDIRedis extends HttpServlet implements HttpRequestHandler {
 
 			// reset Redis logs
 
-			((RedisKeyValueStore) ((KeyValueGraph) this.getGraph()).getKeyValueStore()).getJedisMonitorThread().reset();
+			((RedisKeyValueStore) ((KeyValueGraph) this.getGraph()).getKeyValueStore()).getJedisMonitorThread().resetLogBuffer();
 
 			// parse the message envelope
 
@@ -190,9 +190,8 @@ public class XDIRedis extends HttpServlet implements HttpRequestHandler {
 
 		stats = "";
 		stats += Long.toString(stop - start) + " ms time. ";
-		stats += Integer.toString(((RedisKeyValueStore) ((KeyValueGraph) this.getGraph()).getKeyValueStore()).getJedisMonitorThread().getCount());
 
-		redisApiLog = "<pre>" + ((RedisKeyValueStore) ((KeyValueGraph) this.getGraph()).getKeyValueStore()).getJedisMonitorThread().getBuffer().toString() + "</pre>";
+		redisApiLog = "<pre>" + ((RedisKeyValueStore) ((KeyValueGraph) this.getGraph()).getKeyValueStore()).getJedisMonitorThread().getLogBuffer().toString() + "</pre>";
 
 		// display results
 
