@@ -2,10 +2,9 @@ package xdi2.messaging.tests.target.impl.graph;
 
 import java.io.IOException;
 
-import redis.clients.jedis.Jedis;
-
 import xdi2.core.Graph;
 import xdi2.core.impl.keyvalue.redis.RedisKeyValueGraphFactory;
+import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore;
 
 public class RedisKeyValueGraphMessagingTargetTest extends AbstractGraphMessagingTargetTest {
 
@@ -14,21 +13,24 @@ public class RedisKeyValueGraphMessagingTargetTest extends AbstractGraphMessagin
 	public static final String HOST = "localhost";
 
 	static {
+		
+		graphFactory.setHost(HOST);
+	}
+	
+	@Override
+	protected void setUp() throws Exception {
 
-		cleanup();
+		super.setUp();
+
+		RedisKeyValueStore.cleanup(HOST);
 	}
 
-	public static void cleanup() {
+	@Override
+	protected void tearDown() throws Exception {
 
-		graphFactory.setHost(HOST);
+		super.tearDown();
 
-		try {
-
-			new Jedis(HOST).flushDB();
-		} catch (Exception ex) {
-
-			throw new RuntimeException(ex.getMessage(), ex);
-		}
+		RedisKeyValueStore.cleanup(HOST);
 	}
 
 	@Override

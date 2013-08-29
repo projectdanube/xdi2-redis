@@ -10,7 +10,7 @@ import xdi2.core.impl.keyvalue.AbstractKeyValueGraphFactory;
 import xdi2.core.impl.keyvalue.KeyValueStore;
 
 /**
- * GraphFactory that creates graphs in Redis.
+ * GraphFactory that creates key/value graphs in Redis.
  * 
  * @author markus
  */
