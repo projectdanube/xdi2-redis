@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import redis.clients.jedis.Jedis;
 import xdi2.core.Graph;
-import xdi2.core.impl.redis.RedisGraphFactory;
+import xdi2.core.impl.keyvalue.redis.RedisGraphFactory;
 import xdi2.tests.core.graph.AbstractGraphTest;
 
 public class RedisGraphTest extends AbstractGraphTest {

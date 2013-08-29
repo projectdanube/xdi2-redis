@@ -6,7 +6,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import redis.clients.jedis.Jedis;
 import xdi2.core.impl.keyvalue.KeyValueStore;
-import xdi2.core.impl.redis.RedisKeyValueStore;
+import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore;
 import xdi2.tests.core.impl.keyvalue.AbstractKeyValueTest;
 
 public class RedisKeyValueTest extends AbstractKeyValueTest {

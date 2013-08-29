@@ -1,4 +1,4 @@
-package xdi2.core.impl.redis;
+package xdi2.core.impl.keyvalue.redis;
 
 import java.io.IOException;
 
