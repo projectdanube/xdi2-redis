@@ -14,7 +14,7 @@ import xdi2.core.impl.keyvalue.KeyValueStore;
  * 
  * @author markus
  */
-public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements GraphFactory {
+public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory implements GraphFactory {
 
 	public static final boolean DEFAULT_SUPPORT_GET_CONTEXTNODES = true; 
 	public static final boolean DEFAULT_SUPPORT_GET_RELATIONS = true; 
@@ -27,7 +27,7 @@ public class RedisGraphFactory extends AbstractKeyValueGraphFactory implements G
 	private Integer port;
 	private boolean monitor;
 
-	public RedisGraphFactory() {
+	public RedisKeyValueGraphFactory() {
 
 		super(DEFAULT_SUPPORT_GET_CONTEXTNODES, DEFAULT_SUPPORT_GET_RELATIONS);
 

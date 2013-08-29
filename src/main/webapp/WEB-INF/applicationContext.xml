@@ -38,7 +38,7 @@
 	<!-- MESSAGING TARGET at /graph -->
 	<!-- MessagingTarget: GraphMessagingTarget backed by a RedisGraph -->
 
-	<bean id="graphfactory1" class="xdi2.core.impl.keyvalue.redis.RedisGraphFactory">
+	<bean id="graphfactory1" class="xdi2.core.impl.keyvalue.redis.RedisKeyValueGraphFactory">
 		<property name="host" value="localhost" />
 		<property name="monitor" value="true" />
 	</bean>

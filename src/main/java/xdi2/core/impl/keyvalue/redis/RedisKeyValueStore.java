@@ -14,7 +14,7 @@ import xdi2.core.impl.keyvalue.KeyValueStore;
 
 /**
  * This class defines access to a Redis key/value store. It is used by the
- * RedisGraphFactory class to create graphs stored in Redis.
+ * RedisKeyValueGraphFactory class to create graphs stored in Redis.
  * 
  * @author markus
  */

@@ -1,15 +1,15 @@
-package xdi2.tests.core.impl;
+package xdi2.messaging.tests.target.impl.graph;
 
 import java.io.IOException;
 
 import redis.clients.jedis.Jedis;
+
 import xdi2.core.Graph;
-import xdi2.core.impl.keyvalue.redis.RedisGraphFactory;
-import xdi2.tests.core.graph.AbstractGraphTest;
+import xdi2.core.impl.keyvalue.redis.RedisKeyValueGraphFactory;
 
-public class RedisGraphTest extends AbstractGraphTest {
+public class RedisKeyValueGraphMessagingTargetTest extends AbstractGraphMessagingTargetTest {
 
-	private static RedisGraphFactory graphFactory = new RedisGraphFactory();
+	private static RedisKeyValueGraphFactory graphFactory = new RedisKeyValueGraphFactory();
 
 	public static final String HOST = "localhost";
 
@@ -33,14 +33,6 @@ public class RedisGraphTest extends AbstractGraphTest {
 
 	@Override
 	protected Graph openNewGraph(String identifier) throws IOException {
-
-		return graphFactory.openGraph(identifier);
-	}
-
-	@Override
-	protected Graph reopenGraph(Graph graph, String identifier) throws IOException {
-
-		graph.close();
 
 		return graphFactory.openGraph(identifier);
 	}
