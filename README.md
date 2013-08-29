@@ -32,7 +32,7 @@ Or access the server's status page at
 
 Or use an XDI client to send XDI messages to
 
-    http://localhost:9991/xdi/redis
+    http://localhost:9991/xdi/graph
 
 ### How to build as XDI2 plugin
 
