@@ -13,10 +13,10 @@ public class RedisKeyValueGraphMessagingTargetTest extends AbstractGraphMessagin
 	public static final String HOST = "localhost";
 
 	static {
-		
+
 		graphFactory.setHost(HOST);
 	}
-	
+
 	@Override
 	protected void setUp() throws Exception {
 

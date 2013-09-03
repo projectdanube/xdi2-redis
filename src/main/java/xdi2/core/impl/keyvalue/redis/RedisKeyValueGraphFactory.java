@@ -54,7 +54,7 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 
 		// create prefix
 
-		String prefix = identifier == null ? "" : new String(Base64.encodeBase64(identifier.getBytes("UTF-8")), "UTF-8") + ".";
+		String prefix = new String(Base64.encodeBase64(identifier.getBytes("UTF-8")), "UTF-8") + ".";
 
 		// open store
 
