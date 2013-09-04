@@ -39,6 +39,10 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 	@Override
 	protected KeyValueStore openKeyValueStore(String identifier) throws IOException {
 
+		// check identifier
+
+		String prefix = new String(Base64.encodeBase64(identifier.getBytes("UTF-8")), "UTF-8") + ".";
+
 		// create jedis
 
 		Jedis jedis = this.getPort() == null ? new Jedis(this.getHost()) : new Jedis(this.getHost(), this.getPort().intValue());
@@ -51,10 +55,6 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 
 			monitorJedis = null;
 		}
-
-		// create prefix
-
-		String prefix = identifier == null ? "" : new String(Base64.encodeBase64(identifier.getBytes("UTF-8")), "UTF-8") + ".";
 
 		// open store
 
