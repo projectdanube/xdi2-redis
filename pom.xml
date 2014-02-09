@@ -291,13 +291,8 @@
 				</dependency>
 				<dependency>
 					<groupId>xdi2</groupId>
-<<<<<<< HEAD
 					<artifactId>xdi2-server</artifactId>
 					<version>0.2-SNAPSHOT</version>
-=======
-					<artifactId>xdi2-transport-http</artifactId>
-					<version>0.1-SNAPSHOT</version>
->>>>>>> branch 'master' of https://github.com/projectdanube/xdi2-redis.git
 					<scope>provided</scope>
 				</dependency>
 			</dependencies>
