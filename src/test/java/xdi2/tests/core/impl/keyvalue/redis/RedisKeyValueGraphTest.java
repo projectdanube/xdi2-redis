@@ -1,8 +1,6 @@
 package xdi2.tests.core.impl.keyvalue.redis;
 
-import java.io.IOException;
-
-import xdi2.core.Graph;
+import xdi2.core.GraphFactory;
 import xdi2.core.impl.keyvalue.redis.RedisKeyValueGraphFactory;
 import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore;
 import xdi2.tests.core.impl.AbstractGraphTest;
@@ -35,16 +33,14 @@ public class RedisKeyValueGraphTest extends AbstractGraphTest {
 	}
 
 	@Override
-	protected Graph openNewGraph(String identifier) throws IOException {
+	protected GraphFactory getGraphFactory() {
 
-		return graphFactory.openGraph(identifier);
+		return graphFactory;
 	}
 
 	@Override
-	protected Graph reopenGraph(Graph graph, String identifier) throws IOException {
+	protected boolean supportsPersistence() {
 
-		graph.close();
-
-		return graphFactory.openGraph(identifier);
+		return true;
 	}
 }

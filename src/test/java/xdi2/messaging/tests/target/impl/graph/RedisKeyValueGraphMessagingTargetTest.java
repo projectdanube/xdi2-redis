@@ -34,7 +34,7 @@ public class RedisKeyValueGraphMessagingTargetTest extends AbstractGraphMessagin
 	}
 
 	@Override
-	protected Graph openNewGraph(String identifier) throws IOException {
+	protected Graph openGraph(String identifier) throws IOException {
 
 		return graphFactory.openGraph(identifier);
 	}
