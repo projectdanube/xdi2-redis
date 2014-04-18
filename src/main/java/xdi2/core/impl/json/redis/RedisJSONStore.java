@@ -69,11 +69,7 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 
 		Set<String> keys = this.getJedis().keys(toRedisStartsWithPattern(this.getPrefix() + id));
 
-		for (String key : keys) {
-			
-			System.out.println(key);
-			this.getJedis().del(key);
-		}
+		for (String key : keys) this.getJedis().del(key);
 	}
 
 	public Jedis getJedis() {
