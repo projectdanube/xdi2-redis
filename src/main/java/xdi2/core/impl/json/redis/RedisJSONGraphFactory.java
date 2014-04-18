@@ -1,4 +1,4 @@
-package xdi2.core.impl.keyvalue.redis;
+package xdi2.core.impl.json.redis;
 
 import java.io.IOException;
 
@@ -6,18 +6,15 @@ import org.apache.commons.codec.binary.Base64;
 
 import redis.clients.jedis.Jedis;
 import xdi2.core.GraphFactory;
-import xdi2.core.impl.keyvalue.AbstractKeyValueGraphFactory;
-import xdi2.core.impl.keyvalue.KeyValueStore;
+import xdi2.core.impl.json.AbstractJSONGraphFactory;
+import xdi2.core.impl.json.JSONStore;
 
 /**
- * GraphFactory that creates key/value graphs in Redis.
+ * GraphFactory that creates JSON graphs in Redis.
  * 
  * @author markus
  */
-public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory implements GraphFactory {
-
-	public static final boolean DEFAULT_SUPPORT_GET_CONTEXTNODES = true; 
-	public static final boolean DEFAULT_SUPPORT_GET_RELATIONS = true; 
+public class RedisJSONGraphFactory extends AbstractJSONGraphFactory implements GraphFactory {
 
 	public static final String DEFAULT_HOST = "localhost";
 	public static final Integer DEFAULT_PORT = null;
@@ -27,9 +24,9 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 	private Integer port;
 	private boolean monitor;
 
-	public RedisKeyValueGraphFactory() {
+	public RedisJSONGraphFactory() { 
 
-		super(DEFAULT_SUPPORT_GET_CONTEXTNODES, DEFAULT_SUPPORT_GET_RELATIONS);
+		super();
 
 		this.host = DEFAULT_HOST;
 		this.port = DEFAULT_PORT;
@@ -37,7 +34,7 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 	}
 
 	@Override
-	protected KeyValueStore openKeyValueStore(String identifier) throws IOException {
+	protected JSONStore openJSONStore(String identifier) throws IOException {
 
 		// check identifier
 
@@ -58,14 +55,14 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 
 		// open store
 
-		KeyValueStore keyValueStore;
+		JSONStore jsonStore;
 
-		keyValueStore = new RedisKeyValueStore(jedis, monitorJedis, prefix);
-		keyValueStore.init();
+		jsonStore = new RedisJSONStore(jedis, monitorJedis, prefix);
+		jsonStore.init();
 
 		// done
 
-		return keyValueStore;
+		return jsonStore;
 	}
 
 	/*
