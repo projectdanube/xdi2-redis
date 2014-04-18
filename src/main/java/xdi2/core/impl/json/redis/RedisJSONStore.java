@@ -1,9 +1,18 @@
 package xdi2.core.impl.json.redis;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
 import xdi2.core.impl.json.AbstractJSONStore;
 import xdi2.core.impl.json.JSONStore;
 import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore.MyJedisMonitorThread;
@@ -17,6 +26,8 @@ import com.google.gson.JsonObject;
 public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 
 	private static final Gson gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
+
+	private static final Logger log = LoggerFactory.getLogger(RedisJSONStore.class);
 
 	private Jedis jedis;
 	private String prefix;
@@ -57,6 +68,40 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 	}
 
 	@Override
+	public Map<String, JsonObject> loadWithPrefix(String id) throws IOException {
+
+		List<String> keys = new ArrayList<String> (this.getJedis().keys(toRedisStartsWithPattern(this.getPrefix() + id)));
+
+		Pipeline pipeline = this.getJedis().pipelined();
+		for (String key : keys) pipeline.get(key);
+		List<Object> objects = pipeline.syncAndReturnAll();
+
+		if (keys.size() != objects.size()) {
+
+			log.warn("Unexpected list size " + keys.size() + " != " + objects.size() + ".");
+			return Collections.singletonMap(id, this.load(id));
+		}
+
+		Map<String, JsonObject> map = new HashMap<String, JsonObject> ();
+
+		for (int i=0; i<keys.size(); i++) {
+
+			String key = keys.get(i).substring(this.getPrefix().length());
+			JsonObject jsonObject = fromRedisString((String) objects.get(i));
+
+			if (key == null || jsonObject == null) {
+
+				log.warn("Null key or object " + keys + " -> " + jsonObject + ".");
+				continue;
+			}
+
+			map.put(key, jsonObject);
+		}
+
+		return map;
+	}
+
+	@Override
 	public void save(String id, JsonObject jsonObject) throws IOException {
 
 		String string = toRedisString(jsonObject);
@@ -69,7 +114,9 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 
 		Set<String> keys = this.getJedis().keys(toRedisStartsWithPattern(this.getPrefix() + id));
 
-		for (String key : keys) this.getJedis().del(key);
+		Pipeline pipeline = this.getJedis().pipelined();
+		for (String key : keys) pipeline.del(key);
+		pipeline.sync();
 	}
 
 	public Jedis getJedis() {
