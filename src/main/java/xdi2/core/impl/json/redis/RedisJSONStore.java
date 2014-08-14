@@ -12,10 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisMonitor;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import xdi2.core.impl.json.AbstractJSONStore;
 import xdi2.core.impl.json.JSONStore;
-import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore.MyJedisMonitorThread;
+import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore;
+import xdi2.redis.util.JedisMonitorThread;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,19 +32,19 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 
 	private static final Logger log = LoggerFactory.getLogger(RedisJSONStore.class);
 
-	private Jedis jedis;
+	private JedisPool jedisPool;
 	private String prefix;
 
-	private MyJedisMonitorThread jedisMonitorThread;
+	private JedisMonitorThread jedisMonitorThread;
 
-	public RedisJSONStore(Jedis jedis, Jedis monitorJedis, String prefix) {
+	public RedisJSONStore(JedisPool jedisPool, Jedis monitorJedis, String prefix) {
 
-		this.jedis = jedis;
+		this.jedisPool = jedisPool;
 		this.prefix = prefix;
 
 		if (monitorJedis != null) {
 
-			this.jedisMonitorThread = new MyJedisMonitorThread(monitorJedis);
+			this.jedisMonitorThread = new JedisMonitorThread(monitorJedis);
 			this.jedisMonitorThread.start();
 		} else {
 
@@ -57,45 +60,81 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 	@Override
 	public void close() {
 
+		this.getJedisPool().destroy();
+
+		if (this.getJedisMonitorThread() != null) {
+
+			this.getJedisMonitorThread().getMonitorJedis().disconnect();
+
+			try {
+
+				this.getJedisMonitorThread().join();
+			} catch (InterruptedException ex) { }
+		}
 	}
 
 	@Override
 	public JsonObject load(String id) throws IOException {
 
-		String string = this.getJedis().get(this.getPrefix() + id);
+		Jedis jedis = null;
+		JsonObject jsonObject = null;
 
-		return fromRedisString(string);
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			jsonObject = fromRedisString(jedis.get(this.getPrefix() + id));
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
+
+		return jsonObject;
 	}
 
 	@Override
 	public Map<String, JsonObject> loadWithPrefix(String id) throws IOException {
 
-		List<String> keys = new ArrayList<String> (this.getJedis().keys(toRedisStartsWithPattern(this.getPrefix() + id)));
+		Jedis jedis = null;
+		Map<String, JsonObject> map = null;
 
-		Pipeline pipeline = this.getJedis().pipelined();
-		for (String key : keys) pipeline.get(key);
-		List<Object> objects = pipeline.syncAndReturnAll();
+		try {
 
-		if (keys.size() != objects.size()) {
+			jedis = this.getJedisPool().getResource();
 
-			log.warn("Unexpected list size " + keys.size() + " != " + objects.size() + ".");
-			return Collections.singletonMap(id, this.load(id));
-		}
+			List<String> keys = new ArrayList<String> (jedis.keys(toRedisStartsWithPattern(this.getPrefix() + id)));
 
-		Map<String, JsonObject> map = new HashMap<String, JsonObject> ();
+			Pipeline pipeline = jedis.pipelined();
+			for (String key : keys) pipeline.get(key);
+			List<Object> objects = pipeline.syncAndReturnAll();
 
-		for (int i=0; i<keys.size(); i++) {
+			if (keys.size() != objects.size()) {
 
-			String key = keys.get(i).substring(this.getPrefix().length());
-			JsonObject jsonObject = fromRedisString((String) objects.get(i));
+				log.warn("Unexpected list size " + keys.size() + " != " + objects.size() + ".");
 
-			if (key == null || jsonObject == null) {
+				String string = jedis.get(this.getPrefix() + id);
+				map = Collections.singletonMap(id, fromRedisString(string));
+			} else {
 
-				log.warn("Null key or object " + keys + " -> " + jsonObject + ".");
-				continue;
+				map = new HashMap<String, JsonObject> ();
+
+				for (int i=0; i<keys.size(); i++) {
+
+					String key = keys.get(i).substring(this.getPrefix().length());
+					JsonObject jsonObject = fromRedisString((String) objects.get(i));
+
+					if (key == null || jsonObject == null) {
+
+						log.warn("Null key or object " + keys + " -> " + jsonObject + ".");
+						continue;
+					}
+
+					map.put(key, jsonObject);
+				}
 			}
+		} finally {
 
-			map.put(key, jsonObject);
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
 		}
 
 		return map;
@@ -104,24 +143,44 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 	@Override
 	public void save(String id, JsonObject jsonObject) throws IOException {
 
-		String string = toRedisString(jsonObject);
+		Jedis jedis = null;
 
-		this.getJedis().set(this.getPrefix() + id, string);
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			String string = toRedisString(jsonObject);
+
+			jedis.set(this.getPrefix() + id, string);
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
 	}
 
 	@Override
 	public void delete(final String id) throws IOException {
 
-		Set<String> keys = this.getJedis().keys(toRedisStartsWithPattern(this.getPrefix() + id));
+		Jedis jedis = null;
 
-		Pipeline pipeline = this.getJedis().pipelined();
-		for (String key : keys) pipeline.del(key);
-		pipeline.sync();
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			Set<String> keys = jedis.keys(toRedisStartsWithPattern(this.getPrefix() + id));
+
+			Pipeline pipeline = jedis.pipelined();
+			for (String key : keys) pipeline.del(key);
+			pipeline.sync();
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
 	}
 
-	public Jedis getJedis() {
+	public JedisPool getJedisPool() {
 
-		return this.jedis;
+		return this.jedisPool;
 	}
 
 	public String getPrefix() {
@@ -129,7 +188,7 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 		return this.prefix;
 	}
 
-	public MyJedisMonitorThread getJedisMonitorThread() {
+	public JedisMonitorThread getJedisMonitorThread() {
 
 		return this.jedisMonitorThread;
 	}
@@ -163,5 +222,27 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 	private String toRedisString(JsonElement jsonElement) {
 
 		return gson.toJson(jsonElement);
+	}
+
+	/*
+	 * Helper methods
+	 */
+
+	public static void cleanup(String host) {
+
+		cleanup(host, null);
+	}
+
+	public static void cleanup(String host, Integer port) {
+
+		try {
+
+			Jedis jedis = port == null ? new Jedis(host) : new Jedis(host, port.intValue());
+
+			jedis.flushDB();
+		} catch (Exception ex) {
+
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
 	}
 }
