@@ -8,9 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisMonitor;
+import redis.clients.jedis.JedisPool;
 import xdi2.core.impl.keyvalue.AbstractKeyValueStore;
 import xdi2.core.impl.keyvalue.KeyValueStore;
+import xdi2.redis.util.JedisMonitorThread;
 
 /**
  * This class defines access to a Redis key/value store. It is used by the
@@ -22,19 +23,19 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 
 	private static final Logger log = LoggerFactory.getLogger(RedisKeyValueStore.class);
 
-	private Jedis jedis;
+	private JedisPool jedisPool;
 	private String prefix;
 
-	private MyJedisMonitorThread jedisMonitorThread;
+	private JedisMonitorThread jedisMonitorThread;
 
-	public RedisKeyValueStore(Jedis jedis, Jedis monitorJedis, String prefix) {
+	public RedisKeyValueStore(JedisPool jedisPool, Jedis monitorJedis, String prefix) {
 
-		this.jedis = jedis;
+		this.jedisPool = jedisPool;
 		this.prefix = prefix;
 
 		if (monitorJedis != null) {
 
-			this.jedisMonitorThread = new MyJedisMonitorThread(monitorJedis);
+			this.jedisMonitorThread = new JedisMonitorThread(monitorJedis);
 			this.jedisMonitorThread.start();
 		} else {
 
@@ -50,7 +51,7 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 	@Override
 	public void close() {
 
-		this.getJedis().disconnect();
+		this.getJedisPool().destroy();
 
 		if (this.getJedisMonitorThread() != null) {
 
@@ -59,73 +60,173 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 			try {
 
 				this.getJedisMonitorThread().join();
-			} catch (InterruptedException ex) { 
-
-				ex.printStackTrace(System.err);
-			}
+			} catch (InterruptedException ex) { }
 		}
 	}
 
 	@Override
 	public void set(String key, String value) {
 
-		this.getJedis().sadd(this.getPrefix() + key, value);
+		Jedis jedis = null;
+
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			jedis.sadd(this.getPrefix() + key, value);
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
 	}
 
 	@Override
 	public String getOne(String key) {
 
-		return this.getJedis().srandmember(this.getPrefix() + key);
+		Jedis jedis = null;
+		String result = null;
+
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			result = jedis.srandmember(this.getPrefix() + key);
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
+
+		return result;
 	}
 
 	@Override
 	public Iterator<String> getAll(String key) {
 
-		return this.getJedis().smembers(this.getPrefix() + key).iterator();
+		Jedis jedis = null;
+		Iterator<String> result = null;
+
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			result = jedis.smembers(this.getPrefix() + key).iterator();
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
+
+		return result;
 	}
 
 	@Override
 	public boolean contains(String key) {
 
-		return Boolean.TRUE.equals(this.getJedis().exists(this.getPrefix() + key));
+		Jedis jedis = null;
+		boolean result = false;
+
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			result = Boolean.TRUE.equals(jedis.exists(this.getPrefix() + key));
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
+
+		return result;
 	}
 
 	@Override
 	public boolean contains(String key, String value) {
 
-		return Boolean.TRUE.equals(this.getJedis().sismember(this.getPrefix() + key, value));
+		Jedis jedis = null;
+		boolean result = false;
+
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			result = Boolean.TRUE.equals(jedis.sismember(this.getPrefix() + key, value));
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
+
+		return result;
 	}
 
 	@Override
 	public void delete(String key) {
 
-		this.getJedis().del(this.getPrefix() + key);
+		Jedis jedis = null;
+
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			jedis.del(this.getPrefix() + key);
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
 	}
 
 	@Override
 	public void delete(String key, String value) {
 
-		this.getJedis().srem(this.getPrefix() + key, value);
+		Jedis jedis = null;
+
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			jedis.srem(this.getPrefix() + key, value);
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
 	}
 
 	@Override
 	public long count(String key) {
 
-		return this.getJedis().scard(this.getPrefix() + key).longValue();
+		Jedis jedis = null;
+		long result = -1;
+
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			result = jedis.scard(this.getPrefix() + key).longValue();
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
+
+		return result;
 	}
 
 	@Override
 	public void clear() {
 
-		Set<String> keys = this.getJedis().keys(this.getPrefix() + "*");
-		if (keys.isEmpty()) return;
+		Jedis jedis = null;
 
-		this.getJedis().del(keys.toArray(new String[keys.size()]));
+		try {
+
+			jedis = this.getJedisPool().getResource();
+
+			Set<String> keys = jedis.keys(this.getPrefix() + "*");
+			if (! keys.isEmpty()) jedis.del(keys.toArray(new String[keys.size()]));
+		} finally {
+
+			if (jedis != null) this.getJedisPool().returnResource(jedis);
+		}
 	}
 
-	public Jedis getJedis() {
+	public JedisPool getJedisPool() {
 
-		return this.jedis;
+		return this.jedisPool;
 	}
 
 	public String getPrefix() {
@@ -133,7 +234,7 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 		return this.prefix;
 	}
 
-	public MyJedisMonitorThread getJedisMonitorThread() {
+	public JedisMonitorThread getJedisMonitorThread() {
 
 		return this.jedisMonitorThread;
 	}
@@ -157,60 +258,6 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 		} catch (Exception ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);
-		}
-	}
-
-	/*
-	 * Helper classes
-	 */
-
-	public static class MyJedisMonitorThread extends Thread {
-
-		private StringBuffer logBuffer;
-		private Jedis monitorJedis;
-
-		public MyJedisMonitorThread(Jedis monitorJedis) {
-
-			this.logBuffer = new StringBuffer();
-			this.monitorJedis = monitorJedis;
-		}
-
-		@Override
-		public void run() {
-
-			if (log.isDebugEnabled()) log.debug("Starting monitor.");
-
-			try {
-
-				this.getMonitorJedis().monitor(new JedisMonitor() {
-
-					@Override
-					public void onCommand(String command) {
-
-						if (log.isDebugEnabled()) log.debug(command);
-
-						MyJedisMonitorThread.this.logBuffer.append(command + "\n");
-					}
-				});
-			} catch (Exception ex) {
-
-				if (log.isDebugEnabled()) log.debug("Stopping monitor.");
-			}
-		}
-
-		public StringBuffer getLogBuffer() {
-
-			return this.logBuffer;
-		}
-
-		public Jedis getMonitorJedis() {
-
-			return this.monitorJedis;
-		}
-
-		public void resetLogBuffer() {
-
-			this.logBuffer = new StringBuffer();
 		}
 	}
 }

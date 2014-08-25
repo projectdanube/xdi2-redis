@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.commons.codec.binary.Base64;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import xdi2.core.GraphFactory;
 import xdi2.core.impl.keyvalue.AbstractKeyValueGraphFactory;
 import xdi2.core.impl.keyvalue.KeyValueStore;
@@ -45,7 +46,7 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 
 		// create jedis
 
-		Jedis jedis = this.getPort() == null ? new Jedis(this.getHost()) : new Jedis(this.getHost(), this.getPort().intValue());
+		JedisPool jedisPool = this.getPort() == null ? new JedisPool(this.getHost()) : new JedisPool(this.getHost(), this.getPort().intValue());
 		Jedis monitorJedis;
 
 		if (this.isMonitor()) {
@@ -60,7 +61,7 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 
 		KeyValueStore keyValueStore;
 
-		keyValueStore = new RedisKeyValueStore(jedis, monitorJedis, prefix);
+		keyValueStore = new RedisKeyValueStore(jedisPool, monitorJedis, prefix);
 		keyValueStore.init();
 
 		// done

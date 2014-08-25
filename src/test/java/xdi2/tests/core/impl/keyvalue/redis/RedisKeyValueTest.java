@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.codec.binary.Base64;
 
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import xdi2.core.impl.keyvalue.KeyValueStore;
 import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore;
 import xdi2.tests.core.impl.keyvalue.AbstractKeyValueTest;
@@ -18,15 +18,15 @@ public class RedisKeyValueTest extends AbstractKeyValueTest {
 
 		// create jedis
 
-		Jedis jedis = new Jedis(HOST);
+		JedisPool jedisPool = new JedisPool(HOST);
 
 		// create prefix
 
 		String prefix = new String(Base64.encodeBase64(id.getBytes("UTF-8")), "UTF-8") + ".";
 
 		// create the key/value store
-		
-		KeyValueStore keyValueStore = new RedisKeyValueStore(jedis, null, prefix);
+
+		KeyValueStore keyValueStore = new RedisKeyValueStore(jedisPool, null, prefix);
 
 		// done
 
