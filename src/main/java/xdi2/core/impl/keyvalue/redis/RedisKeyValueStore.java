@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import xdi2.core.impl.keyvalue.AbstractKeyValueStore;
@@ -20,8 +17,6 @@ import xdi2.redis.util.JedisMonitorThread;
  * @author markus
  */
 public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValueStore {
-
-	private static final Logger log = LoggerFactory.getLogger(RedisKeyValueStore.class);
 
 	private JedisPool jedisPool;
 	private String prefix;
@@ -250,14 +245,19 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 
 	public static void cleanup(String host, Integer port) {
 
+		Jedis jedis = null;
+		
 		try {
 
-			Jedis jedis = port == null ? new Jedis(host) : new Jedis(host, port.intValue());
+			jedis = port == null ? new Jedis(host) : new Jedis(host, port.intValue());
 
 			jedis.flushDB();
 		} catch (Exception ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);
+		} finally {
+
+			if (jedis != null) jedis.close();
 		}
 	}
 }

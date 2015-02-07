@@ -35,6 +35,7 @@ public class RedisJSONGraphFactory extends AbstractJSONGraphFactory implements G
 	}
 
 	@Override
+	@SuppressWarnings("resource")
 	protected JSONStore openJSONStore(String identifier) throws IOException {
 
 		// check identifier

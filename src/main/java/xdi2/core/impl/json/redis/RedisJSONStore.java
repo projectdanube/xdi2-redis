@@ -12,12 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisMonitor;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import xdi2.core.impl.json.AbstractJSONStore;
 import xdi2.core.impl.json.JSONStore;
-import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore;
 import xdi2.redis.util.JedisMonitorThread;
 
 import com.google.gson.Gson;
@@ -235,14 +233,19 @@ public class RedisJSONStore extends AbstractJSONStore implements JSONStore {
 
 	public static void cleanup(String host, Integer port) {
 
+		Jedis jedis = null;
+		
 		try {
 
-			Jedis jedis = port == null ? new Jedis(host) : new Jedis(host, port.intValue());
+			jedis = port == null ? new Jedis(host) : new Jedis(host, port.intValue());
 
 			jedis.flushDB();
 		} catch (Exception ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);
+		} finally {
+
+			if (jedis != null) jedis.close();
 		}
 	}
 }
