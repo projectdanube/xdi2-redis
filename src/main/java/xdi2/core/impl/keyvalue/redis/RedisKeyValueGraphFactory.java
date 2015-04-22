@@ -38,6 +38,7 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 	}
 
 	@Override
+	@SuppressWarnings("resource")
 	protected KeyValueStore openKeyValueStore(String identifier) throws IOException {
 
 		// check identifier
