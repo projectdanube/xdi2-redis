@@ -245,15 +245,20 @@ public class RedisKeyValueStore extends AbstractKeyValueStore implements KeyValu
 
 	public static void cleanup(String host, Integer port) {
 
+		Jedis jedis = null;
+		
 		try {
 
-			Jedis jedis = port == null ? new Jedis(host) : new Jedis(host, port.intValue());
+			jedis = port == null ? new Jedis(host) : new Jedis(host, port.intValue());
 
 			jedis.flushDB();
 			jedis.close();
 		} catch (Exception ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);
+		} finally {
+
+			if (jedis != null) jedis.close();
 		}
 	}
 }

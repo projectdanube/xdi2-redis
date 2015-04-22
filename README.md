@@ -34,6 +34,15 @@ Or use an XDI client to send XDI messages to
 
     http://localhost:9991/xdi/graph
 
+### Maven Dependency
+
+	<dependency>
+	    <groupId>xdi2</groupId>
+	    <artifactId>xdi2-redis</artifactId>
+	    <version>${xdi2-redis-version}</version>
+	    <scope>compile</scope>
+	</dependency>
+
 ### Community
 
 Google Group: http://groups.google.com/group/xdi2
