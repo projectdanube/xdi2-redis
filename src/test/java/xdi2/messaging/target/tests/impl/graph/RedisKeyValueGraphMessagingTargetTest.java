@@ -5,7 +5,6 @@ import java.io.IOException;
 import xdi2.core.Graph;
 import xdi2.core.impl.keyvalue.redis.RedisKeyValueGraphFactory;
 import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore;
-import xdi2.messaging.target.tests.impl.graph.AbstractGraphMessagingTargetTest;
 
 public class RedisKeyValueGraphMessagingTargetTest extends AbstractGraphMessagingTargetTest {
 

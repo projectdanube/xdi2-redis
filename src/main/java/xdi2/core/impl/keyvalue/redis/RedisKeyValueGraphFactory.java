@@ -1,6 +1,7 @@
 package xdi2.core.impl.keyvalue.redis;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -43,7 +44,7 @@ public class RedisKeyValueGraphFactory extends AbstractKeyValueGraphFactory impl
 
 		// check identifier
 
-		String prefix = new String(Base64.encodeBase64(identifier.getBytes("UTF-8")), "UTF-8") + ".";
+		String prefix = new String(Base64.encodeBase64(identifier.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8) + ".";
 
 		// create jedis
 
