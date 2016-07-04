@@ -1,7 +1,7 @@
 package xdi2.core.impl.json.redis;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -41,7 +41,7 @@ public class RedisJSONGraphFactory extends AbstractJSONGraphFactory implements G
 
 		// check identifier
 
-		String prefix = new String(Base64.encodeBase64(identifier.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8) + ".";
+		String prefix = new String(Base64.encodeBase64(identifier.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")) + ".";
 
 		// create jedis
 

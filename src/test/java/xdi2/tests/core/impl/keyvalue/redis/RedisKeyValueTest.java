@@ -1,7 +1,7 @@
 package xdi2.tests.core.impl.keyvalue.redis;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -23,7 +23,7 @@ public class RedisKeyValueTest extends AbstractKeyValueTest {
 
 		// create prefix
 
-		String prefix = new String(Base64.encodeBase64(id.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8) + ".";
+		String prefix = new String(Base64.encodeBase64(id.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")) + ".";
 
 		// create the key/value store
 
