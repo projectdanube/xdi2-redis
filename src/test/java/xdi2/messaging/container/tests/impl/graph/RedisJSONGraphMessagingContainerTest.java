@@ -1,14 +1,15 @@
-package xdi2.messaging.target.tests.impl.graph;
+package xdi2.messaging.container.tests.impl.graph;
 
 import java.io.IOException;
 
 import xdi2.core.Graph;
-import xdi2.core.impl.keyvalue.redis.RedisKeyValueGraphFactory;
+import xdi2.core.impl.json.redis.RedisJSONGraphFactory;
 import xdi2.core.impl.keyvalue.redis.RedisKeyValueStore;
+import xdi2.messaging.container.tests.impl.graph.AbstractGraphMessagingContainerTest;
 
-public class RedisKeyValueGraphMessagingTargetTest extends AbstractGraphMessagingTargetTest {
+public class RedisJSONGraphMessagingContainerTest extends AbstractGraphMessagingContainerTest {
 
-	private static RedisKeyValueGraphFactory graphFactory = new RedisKeyValueGraphFactory();
+	private static RedisJSONGraphFactory graphFactory = new RedisJSONGraphFactory();
 
 	public static final String HOST = "localhost";
 
